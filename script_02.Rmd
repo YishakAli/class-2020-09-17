@@ -25,10 +25,17 @@ Once you have finished cleaning your data, figure out the course with the highes
 raw <- read_excel("raw_data/class_enrollment_summary_by_term_9-17-2020.xlsx", skip = 3)
 
 en_fall_2020 <- raw %>% 
-  select("UGrad", "Course Name", "Total", "Course Title") %>% 
-  filter(UGrad > 10) %>% 
-  arrange(desc(Total))
-?clean_names()
+  clean_names() %>% 
+  select(u_grad, course_name, total, course_title, course_department) %>% 
+  filter(u_grad > 10) %>% 
+  arrange(desc(u_grad)) 
+en_fall_2020
+  
+subset(en_fall_2020, en_fall_2020$course_title == "GOV 50")
+
+
+
+
 
  
 ```
@@ -40,6 +47,20 @@ en_fall_2020 <- raw %>%
 
 **Prompt:** Create a bar plot of the 10 biggest courses. Order the plot so that courses appear in descending order. You will want to use coord_flip() to make your plot easy to read.
 
+```{r}
+en_fall_2020 %>% 
+  slice(2:11) %>%
+  ggplot(aes(x = fct_reorder(course_name, u_grad), y = u_grad)) + geom_col() +
+  coord_flip() + labs(title = "Undergraduate Enrollment of 10 Biggest Courses",
+                      y = "Undergraduate Enrollment", 
+                      x = "Course Title")
+  
+
+
+  
+```
+
+
 
 
 
@@ -47,10 +68,37 @@ en_fall_2020 <- raw %>%
 
 **Prompt:** Make a bar plot of total enrollment by department for the ten smallest departments. Arrange the bar plot in ascending order.
 
+```{r}
+en_fall_2020 %>%
+  group_by(course_department) %>% 
+  summarize(department_total = sum(total)) %>% 
+  arrange(department_total) %>% 
+  slice(1:10) %>% 
+  ggplot(aes(x = fct_reorder(course_department, department_total), y = department_total)) + 
+    geom_col() + 
+    labs(title = " Total Enrollment for 10 Smallest Departments",
+         y = "Department Total", x = "Department") + 
+    coord_flip() 
+  
+  
+  
+  
+
+```
+
 
 
 ### Scene 4
 
 **Prompt:** Create a scatterplot of the length of course name versus enrollment for the Computer Science and Economics Department. Use `nchar()` to find the length, and include spaces. Add a linear line of best fit on your plot and scale axes appropriately.
 
+```{r}
+en_fall_2020 %>% 
+  filter(course_department %in% c('Economics', 'Computer Science')) %>% 
+  mutate(name_length = nchar(course_name)) %>% 
+  ggplot(aes(x = name_length, y = total)) +
+    geom_point() + geom_smooth(method = lm)
+  
+  
+```
 
